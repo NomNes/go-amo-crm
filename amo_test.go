@@ -1,6 +1,7 @@
 package go_amo_crm
 
 import (
+	"log"
 	"os"
 	"path"
 	"runtime"
@@ -44,5 +45,24 @@ func TestAmoCrm_Auth(t *testing.T) {
 	})
 	Convey("Success", t, func() {
 		auth()
+	})
+}
+
+func TestAmoCrm_Contacts(t *testing.T) {
+	Convey("Catalogs", t, func() {
+		auth()
+		Convey("get list", func() {
+			contacts, err := amo.GetContacts()
+			So(err, ShouldBeNil)
+			So(contacts, ShouldNotBeNil)
+			if len(contacts) > 0 {
+				Convey("get item", func() {
+					item, err := amo.GetContact(contacts[0].Id)
+					So(err, ShouldBeNil)
+					So(item, ShouldNotBeNil)
+					log.Println(item)
+				})
+			}
+		})
 	})
 }
