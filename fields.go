@@ -1,4 +1,4 @@
-package go_amo_crm
+package amo
 
 type Field struct {
 	Id          int               `json:"id"`
