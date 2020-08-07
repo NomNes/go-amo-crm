@@ -19,7 +19,7 @@ func init() {
 	if err := godotenv.Load(dir + "/test.env"); err != nil {
 		panic("No .env file found")
 	}
-	amo = &AmoCrm{storage: &FileStorage{Path: dir + "/amo.storage"}}
+	amo = &AmoCrm{Storage: &FileStorage{Path: dir + "/amo.storage"}}
 	amo.Setup(os.Getenv("SUBDOMAIN"), os.Getenv("CLIENT_ID"), os.Getenv("CLIENT_SECRET"), os.Getenv("REDIRECT_URI"))
 }
 
@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 
 func TestAmoCrm_Auth(t *testing.T) {
 	Convey("Failed", t, func() {
-		c := &AmoCrm{storage: &RuntimeStorage{}}
+		c := &AmoCrm{Storage: &RuntimeStorage{}}
 		c.Setup("", "", "", "")
 		So(c.Auth(""), ShouldBeError)
 	})

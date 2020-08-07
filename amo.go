@@ -6,14 +6,7 @@ type AmoCrm struct {
 	clientSecret string
 	redirectUri  string
 	authorized   bool
-	storage      Storage
-}
-
-type Settings struct {
-	Subdomain    string
-	ClientId     string
-	ClientSecret string
-	Storage      *Storage
+	Storage
 }
 
 func (a *AmoCrm) Setup(subdomain, clientId, clientSecret, redirectUri string) {
@@ -28,7 +21,7 @@ func (a *AmoCrm) Auth(code string) error {
 	if err != nil {
 		return err
 	}
-	err = a.storage.Set(d)
+	err = a.Storage.Set(d)
 	if err != nil {
 		return err
 	}
@@ -36,10 +29,10 @@ func (a *AmoCrm) Auth(code string) error {
 }
 
 func (a *AmoCrm) Restore() error {
-	d := a.storage.Get()
+	d := a.Storage.Get()
 	d, err := a.actualizeToken(d)
 	if err != nil {
 		return err
 	}
-	return a.storage.Set(d)
+	return a.Storage.Set(d)
 }

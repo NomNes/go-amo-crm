@@ -37,7 +37,7 @@ func (a *AmoCrm) request(method, path string, jsonBody interface{}, r interface{
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "amoCRM-API-Library/1.0")
-	if d := a.storage.Get(); d != nil {
+	if d := a.Storage.Get(); d != nil {
 		req.Header.Set("Authorization", fmt.Sprintf("%s %s", d.TokenType, d.AccessToken))
 	}
 	res, err := http.DefaultClient.Do(req)
