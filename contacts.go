@@ -2,6 +2,7 @@ package amo
 
 import (
 	"fmt"
+	"time"
 )
 
 type Contact struct {
@@ -106,5 +107,10 @@ func (a *AmoCrm) AddContacts(contact []AddContact) ([]int, error) {
 }
 
 func (a *AmoCrm) UpdateContacts(contact []AddContact) ([]int, error) {
+	for i := range contact {
+		if contact[i].UpdatedAt == 0 {
+			contact[i].UpdatedAt = int(time.Now().Unix())
+		}
+	}
 	return a.postContacts("update", contact)
 }

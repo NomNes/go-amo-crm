@@ -5,7 +5,6 @@ import (
 	"path"
 	"runtime"
 	"testing"
-	"time"
 
 	"github.com/joho/godotenv"
 	. "github.com/smartystreets/goconvey/convey"
@@ -112,7 +111,6 @@ func TestAmoCrm_GetContacts(t *testing.T) {
 			So(ids, ShouldHaveLength, 1)
 			if len(ids) > 0 {
 				contact.Id = ids[0]
-				contact.UpdatedAt = int(time.Now().Unix())
 				contact.CustomFields = append(contact.CustomFields, phoneField)
 				updatedIds, err := amo.UpdateContacts([]AddContact{contact})
 				So(err, ShouldBeNil)
