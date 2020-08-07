@@ -2,7 +2,6 @@ package go_amo_crm
 
 import (
 	"errors"
-	"log"
 	"time"
 )
 
@@ -54,7 +53,6 @@ func (a *AmoCrm) actualizeToken(d *TokenData) (*TokenData, error) {
 	var err error
 	e := d.Timestamp.Add(time.Duration(int64(time.Second) * int64(d.ExpiresIn)))
 	if time.Now().After(e) {
-		log.Println("refresh")
 		d, err = a.refreshToken(d)
 		if err != nil {
 			return nil, err

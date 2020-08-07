@@ -1,6 +1,8 @@
 package go_amo_crm
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Contact struct {
 	Id                int     `json:"id"`
@@ -48,4 +50,61 @@ func (a *AmoCrm) GetContact(id int) (*Contact, error) {
 		return &r.Embedded.Items[0], nil
 	}
 	return nil, nil
+}
+
+type AddContact struct {
+	Id                int                     `json:"id,omitempty"`
+	Name              string                  `json:"name,omitempty"`
+	FirstName         string                  `json:"first_name,omitempty"`
+	LastName          string                  `json:"last_name,omitempty"`
+	CreatedAt         int                     `json:"created_at,omitempty"`
+	UpdatedAt         int                     `json:"updated_at,omitempty"`
+	ResponsibleUserId int                     `json:"responsible_user_id,omitempty"`
+	CreatedBy         int                     `json:"created_by,omitempty"`
+	CompanyName       string                  `json:"company_name,omitempty"`
+	Tags              string                  `json:"tags,omitempty"`
+	CustomFields      []AddContactCustomField `json:"custom_fields,omitempty"`
+}
+
+type AddContactCustomField struct {
+	Id     int                          `json:"id"`
+	Values []AddContactCustomFieldValue `json:"values"`
+}
+
+type AddContactCustomFieldValue struct {
+	Value string `json:"value"`
+	Enum  string `json:"enum"`
+}
+
+func (a *AmoCrm) postContacts(action string, contact []AddContact) ([]int, error) {
+	var r struct {
+		Embedded struct {
+			Items []struct {
+				Id int `json:"id"`
+			} `json:"items"`
+		} `json:"_embedded"`
+	}
+	err := a.post("/api/v2/contacts", map[string]interface{}{
+		action: contact,
+	}, &r)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(r.Embedded.Items) > 0 {
+		var result []int
+		for _, item := range r.Embedded.Items {
+			result = append(result, item.Id)
+		}
+		return result, nil
+	}
+	return nil, nil
+}
+
+func (a *AmoCrm) AddContacts(contact []AddContact) ([]int, error) {
+	return a.postContacts("add", contact)
+}
+
+func (a *AmoCrm) UpdateContacts(contact []AddContact) ([]int, error) {
+	return a.postContacts("update", contact)
 }

@@ -1,11 +1,11 @@
 package go_amo_crm
 
 import (
-	"log"
 	"os"
 	"path"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/joho/godotenv"
 	. "github.com/smartystreets/goconvey/convey"
@@ -48,8 +48,17 @@ func TestAmoCrm_Auth(t *testing.T) {
 	})
 }
 
-func TestAmoCrm_Contacts(t *testing.T) {
-	Convey("Catalogs", t, func() {
+func TestAmoCrm_Fields(t *testing.T) {
+	Convey("Fields", t, func() {
+		auth()
+		fields, err := amo.GetFields()
+		So(err, ShouldBeNil)
+		So(fields, ShouldNotBeNil)
+	})
+}
+
+func TestAmoCrm_GetContacts(t *testing.T) {
+	Convey("Contacts", t, func() {
 		auth()
 		Convey("get list", func() {
 			contacts, err := amo.GetContacts()
@@ -60,8 +69,54 @@ func TestAmoCrm_Contacts(t *testing.T) {
 					item, err := amo.GetContact(contacts[0].Id)
 					So(err, ShouldBeNil)
 					So(item, ShouldNotBeNil)
-					log.Println(item)
+					So(item.Id, ShouldEqual, contacts[0].Id)
 				})
+			}
+		})
+
+		Convey("add item", func() {
+			fields, err := amo.GetFields()
+			if err != nil {
+				panic(err)
+			}
+			var phoneField AddContactCustomField
+			var emailField AddContactCustomField
+			if fields.Contacts != nil {
+				for _, field := range fields.Contacts {
+					switch field.Code {
+					case "PHONE":
+						phoneField = AddContactCustomField{
+							Id: field.Id,
+							Values: []AddContactCustomFieldValue{
+								{Value: "+79876543210", Enum: "WORK"},
+							},
+						}
+					case "EMAIL":
+						emailField = AddContactCustomField{
+							Id: field.Id,
+							Values: []AddContactCustomFieldValue{
+								{Value: "test@example.com", Enum: "WORK"},
+							},
+						}
+					}
+				}
+			}
+
+			contact := AddContact{
+				Name:         "Контакт Тестов",
+				CustomFields: []AddContactCustomField{emailField},
+			}
+
+			ids, err := amo.AddContacts([]AddContact{contact})
+			So(err, ShouldBeNil)
+			So(ids, ShouldHaveLength, 1)
+			if len(ids) > 0 {
+				contact.Id = ids[0]
+				contact.UpdatedAt = int(time.Now().Unix())
+				contact.CustomFields = append(contact.CustomFields, phoneField)
+				updatedIds, err := amo.UpdateContacts([]AddContact{contact})
+				So(err, ShouldBeNil)
+				So(updatedIds, ShouldHaveLength, 1)
 			}
 		})
 	})
