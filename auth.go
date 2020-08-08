@@ -1,8 +1,9 @@
 package amo
 
 import (
-	"errors"
 	"time"
+
+	"github.com/NomNes/go-errors-sentry"
 )
 
 type TokenData struct {
@@ -13,8 +14,9 @@ type TokenData struct {
 	Timestamp    time.Time `json:"timestamp,omitempty"`
 }
 
-func (a *AmoCrm) getToken(code string) (d *TokenData, err error) {
-	err = a.post("/oauth2/access_token", map[string]string{
+func (a *AmoCrm) getToken(code string) (*TokenData, error) {
+	var d *TokenData
+	err := a.post("/oauth2/access_token", map[string]string{
 		"client_id":     a.clientId,
 		"client_secret": a.clientSecret,
 		"grant_type":    "authorization_code",
@@ -22,10 +24,10 @@ func (a *AmoCrm) getToken(code string) (d *TokenData, err error) {
 		"redirect_uri":  "https://dubai-realty.com",
 	}, &d)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err)
 	}
 	d.Timestamp = time.Now().Add(-time.Second * 30)
-	return
+	return d, nil
 }
 
 func (a *AmoCrm) refreshToken(d *TokenData) (*TokenData, error) {
@@ -37,7 +39,7 @@ func (a *AmoCrm) refreshToken(d *TokenData) (*TokenData, error) {
 		"redirect_uri":  "https://dubai-realty.com",
 	}, &d)
 	if err != nil {
-		return d, err
+		return d, errors.Wrap(err)
 	}
 	d.Timestamp = time.Now().Add(-time.Second * 30)
 	return d, nil
@@ -55,7 +57,7 @@ func (a *AmoCrm) actualizeToken(d *TokenData) (*TokenData, error) {
 	if time.Now().After(e) {
 		d, err = a.refreshToken(d)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err)
 		}
 	}
 	return d, nil

@@ -3,6 +3,8 @@ package amo
 import (
 	"encoding/json"
 	"strings"
+
+	"github.com/NomNes/go-errors-sentry"
 )
 
 type Account struct {
@@ -83,9 +85,9 @@ type uglyCustomFields struct {
 func reUnmarshal(s interface{}, d interface{}) error {
 	j, err := json.Marshal(s)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
-	return json.Unmarshal(j, &d)
+	return errors.Wrap(json.Unmarshal(j, &d))
 }
 
 func (a *AmoCrm) GetAccount(with []string) (*Account, error) {
@@ -96,14 +98,14 @@ func (a *AmoCrm) GetAccount(with []string) (*Account, error) {
 	var r *Account
 	err := a.get(path, &r)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err)
 	}
 	if r.Embedded.CF != nil {
 		r.Embedded.CustomFields = &CustomFields{}
 		if f, ok := r.Embedded.CF.Contacts.(map[string]interface{}); ok {
 			err = reUnmarshal(f, &r.Embedded.CustomFields.Contacts)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err)
 			}
 		}
 		if f, ok := r.Embedded.CF.Leads.(map[string]Field); ok {

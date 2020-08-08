@@ -1,5 +1,7 @@
 package amo
 
+import "github.com/NomNes/go-errors-sentry"
+
 type Field struct {
 	Id          int               `json:"id"`
 	Name        string            `json:"name"`
@@ -25,7 +27,7 @@ type CustomFields struct {
 func (a *AmoCrm) GetFields() (*CustomFields, error) {
 	account, err := a.GetAccount([]string{"custom_fields"})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err)
 	}
 	return account.Embedded.CustomFields, nil
 }

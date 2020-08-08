@@ -3,6 +3,8 @@ package amo
 import (
 	"encoding/json"
 	"io/ioutil"
+
+	"github.com/NomNes/go-errors-sentry"
 )
 
 type Storage interface {
@@ -49,7 +51,7 @@ func (s *FileStorage) flush() error {
 	}
 	b, err := json.Marshal(s.tokenData)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 	return ioutil.WriteFile(path, b, 0644)
 }

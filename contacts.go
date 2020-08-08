@@ -3,6 +3,8 @@ package amo
 import (
 	"fmt"
 	"time"
+
+	"github.com/NomNes/go-errors-sentry"
 )
 
 type Contact struct {
@@ -36,7 +38,7 @@ func (a *AmoCrm) GetContacts() ([]Contact, error) {
 	var r cr
 	err := a.get("/api/v2/contacts", &r)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err)
 	}
 	return r.Embedded.Items, nil
 }
@@ -45,7 +47,7 @@ func (a *AmoCrm) GetContact(id int) (*Contact, error) {
 	var r cr
 	err := a.get(fmt.Sprintf("/api/v2/contacts?id=%d", id), &r)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err)
 	}
 	if len(r.Embedded.Items) > 0 {
 		return &r.Embedded.Items[0], nil
@@ -89,7 +91,7 @@ func (a *AmoCrm) postContacts(action string, contact []AddContact) ([]int, error
 		action: contact,
 	}, &r)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err)
 	}
 
 	if len(r.Embedded.Items) > 0 {

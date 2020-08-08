@@ -1,5 +1,7 @@
 package amo
 
+import "github.com/NomNes/go-errors-sentry"
+
 type AmoCrm struct {
 	subdomain    string
 	clientId     string
@@ -19,11 +21,11 @@ func (a *AmoCrm) Setup(subdomain, clientId, clientSecret, redirectUri string) {
 func (a *AmoCrm) Auth(code string) error {
 	d, err := a.getToken(code)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 	err = a.Storage.Set(d)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 	return nil
 }
@@ -32,7 +34,7 @@ func (a *AmoCrm) Restore() error {
 	d := a.Storage.Get()
 	d, err := a.actualizeToken(d)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 	return a.Storage.Set(d)
 }
