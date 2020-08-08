@@ -24,6 +24,10 @@ type ErrorRes struct {
 }
 
 func (a *AmoCrm) request(method, path string, jsonBody interface{}, r interface{}) error {
+	err := a.Restore()
+	if err != nil {
+		return errors.Wrap(err)
+	}
 	var br io.Reader
 	if jsonBody != nil {
 		b, err := json.Marshal(jsonBody)

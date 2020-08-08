@@ -1,6 +1,10 @@
 package amo
 
-import "github.com/NomNes/go-errors-sentry"
+import (
+	"sync"
+
+	"github.com/NomNes/go-errors-sentry"
+)
 
 type AmoCrm struct {
 	subdomain    string
@@ -9,6 +13,7 @@ type AmoCrm struct {
 	redirectUri  string
 	authorized   bool
 	Storage
+	sync.Mutex
 }
 
 func (a *AmoCrm) Setup(subdomain, clientId, clientSecret, redirectUri string) {
@@ -31,6 +36,8 @@ func (a *AmoCrm) Auth(code string) error {
 }
 
 func (a *AmoCrm) Restore() error {
+	a.Lock()
+	defer a.Unlock()
 	d := a.Storage.Get()
 	d, err := a.actualizeToken(d)
 	if err != nil {
