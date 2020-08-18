@@ -36,7 +36,7 @@ type cr struct {
 
 func (a *AmoCrm) GetContacts() ([]Contact, error) {
 	var r cr
-	err := a.get("/api/v2/contacts", &r)
+	err := a.get("/api/v2/contacts", &r, true)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
@@ -45,7 +45,7 @@ func (a *AmoCrm) GetContacts() ([]Contact, error) {
 
 func (a *AmoCrm) GetContact(id int) (*Contact, error) {
 	var r cr
-	err := a.get(fmt.Sprintf("/api/v2/contacts?id=%d", id), &r)
+	err := a.get(fmt.Sprintf("/api/v2/contacts?id=%d", id), &r, true)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
@@ -89,7 +89,7 @@ func (a *AmoCrm) postContacts(action string, contact []AddContact) ([]int, error
 	}
 	err := a.post("/api/v2/contacts", map[string]interface{}{
 		action: contact,
-	}, &r)
+	}, &r, true)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}

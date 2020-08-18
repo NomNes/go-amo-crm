@@ -22,7 +22,7 @@ func (a *AmoCrm) getToken(code string) (*TokenData, error) {
 		"grant_type":    "authorization_code",
 		"code":          code,
 		"redirect_uri":  "https://dubai-realty.com",
-	}, &d)
+	}, &d, false)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
@@ -37,7 +37,7 @@ func (a *AmoCrm) refreshToken(d *TokenData) (*TokenData, error) {
 		"grant_type":    "refresh_token",
 		"refresh_token": d.RefreshToken,
 		"redirect_uri":  "https://dubai-realty.com",
-	}, &d)
+	}, &d, false)
 	if err != nil {
 		return d, errors.Wrap(err)
 	}

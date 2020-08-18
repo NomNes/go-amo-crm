@@ -96,7 +96,7 @@ func (a *AmoCrm) GetAccount(with []string) (*Account, error) {
 		path += "?with=" + strings.Join(with, ",")
 	}
 	var r *Account
-	err := a.get(path, &r)
+	err := a.get(path, &r, true)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}

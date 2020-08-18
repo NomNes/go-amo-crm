@@ -24,13 +24,15 @@ type ErrorRes struct {
 	Detail string `json:"detail"`
 }
 
-func (a *AmoCrm) request(method, path string, jsonBody interface{}, r interface{}) error {
+func (a *AmoCrm) request(method, path string, jsonBody interface{}, r interface{}, auth bool) error {
 	if a.Debug {
 		log.Println("amo start request", method, path)
 	}
-	err := a.Restore()
-	if err != nil {
-		return errors.Wrap(err)
+	if auth {
+		err := a.Restore()
+		if err != nil {
+			return errors.Wrap(err)
+		}
 	}
 	var br io.Reader
 	if jsonBody != nil {
@@ -46,8 +48,10 @@ func (a *AmoCrm) request(method, path string, jsonBody interface{}, r interface{
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "amoCRM-API-Library/1.0")
-	if d := a.Storage.Get(); d != nil {
-		req.Header.Set("Authorization", fmt.Sprintf("%s %s", d.TokenType, d.AccessToken))
+	if auth {
+		if d := a.Storage.Get(); d != nil {
+			req.Header.Set("Authorization", fmt.Sprintf("%s %s", d.TokenType, d.AccessToken))
+		}
 	}
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -73,10 +77,10 @@ func (a *AmoCrm) request(method, path string, jsonBody interface{}, r interface{
 	return errors.Wrap(json.Unmarshal(body, &r))
 }
 
-func (a *AmoCrm) post(path string, jsonBody interface{}, r interface{}) error {
-	return errors.Wrap(a.request(http.MethodPost, path, jsonBody, &r))
+func (a *AmoCrm) post(path string, jsonBody interface{}, r interface{}, auth bool) error {
+	return errors.Wrap(a.request(http.MethodPost, path, jsonBody, &r, auth))
 }
 
-func (a *AmoCrm) get(path string, r interface{}) error {
-	return errors.Wrap(a.request(http.MethodGet, path, nil, &r))
+func (a *AmoCrm) get(path string, r interface{}, auth bool) error {
+	return errors.Wrap(a.request(http.MethodGet, path, nil, &r, auth))
 }
