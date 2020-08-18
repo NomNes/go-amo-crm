@@ -14,7 +14,7 @@ type AmoCrm struct {
 	redirectUri  string
 	authorized   bool
 	Storage
-	sync.Mutex
+	mu sync.Mutex
 }
 
 func (a *AmoCrm) Setup(subdomain, clientId, clientSecret, redirectUri string) {
@@ -37,8 +37,8 @@ func (a *AmoCrm) Auth(code string) error {
 }
 
 func (a *AmoCrm) Restore() error {
-	a.Lock()
-	defer a.Unlock()
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	d := a.Storage.Get()
 	d, err := a.actualizeToken(d)
 	if err != nil {
