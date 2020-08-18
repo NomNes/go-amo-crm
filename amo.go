@@ -7,6 +7,7 @@ import (
 )
 
 type AmoCrm struct {
+	Debug        bool
 	subdomain    string
 	clientId     string
 	clientSecret string

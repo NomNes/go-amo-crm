@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/NomNes/go-errors-sentry"
@@ -24,6 +25,9 @@ type ErrorRes struct {
 }
 
 func (a *AmoCrm) request(method, path string, jsonBody interface{}, r interface{}) error {
+	if a.Debug {
+		log.Println("amo start request", method, path)
+	}
 	err := a.Restore()
 	if err != nil {
 		return errors.Wrap(err)
@@ -55,6 +59,9 @@ func (a *AmoCrm) request(method, path string, jsonBody interface{}, r interface{
 		return errors.Wrap(err)
 	}
 
+	if a.Debug {
+		log.Println("amo response", method, path, res.StatusCode, string(body))
+	}
 	if res.StatusCode != 200 {
 		var errJson ErrorRes
 		err := json.Unmarshal(body, &errJson)
