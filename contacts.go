@@ -32,9 +32,10 @@ type ContactEmbedded struct {
 
 // GetContacts return slice of Contact
 // Available with: WithLeads, WithCustomers, WithCatalogElements
-func (a *AmoCrm) GetContacts(limit, page int, with []string) ([]Contact, *Pages, error) {
+// Available order: OrderByCreatedAt, OrderByUpdatedAt, OrderById
+func (a *AmoCrm) GetContacts(limit, page int, with []string, query string, order map[string]string) ([]Contact, *Pages, error) {
 	var contacts []Contact
-	paged, err := a.getItems([]string{contactsEntity}, &entitiesQuery{Limit: limit, Page: page, With: with}, &contacts)
+	paged, err := a.getItems([]string{contactsEntity}, &entitiesQuery{Limit: limit, Page: page, With: with, Query: query, Order: order}, &contacts)
 	for i := range contacts {
 		contacts[i].client = a
 	}
