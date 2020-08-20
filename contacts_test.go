@@ -13,7 +13,7 @@ func TestContacts(t *testing.T) {
 	var lastId int
 
 	Convey("GetContacts", t, func() {
-		contacts, _, err := amo.GetContacts(0, 1, []string{"leads"})
+		contacts, _, err := amo.GetContacts(0, 1, []string{"leads"}, "", nil)
 		So(err, ShouldBeNil)
 		So(len(contacts), ShouldBeGreaterThan, 0)
 		lastId = contacts[len(contacts)-1].Id

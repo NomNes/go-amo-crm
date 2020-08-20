@@ -91,3 +91,13 @@ func (l *Lead) Save() error {
 	}
 	return l.client.addItem([]string{leadsEntity}, l, l.Id > 0, nil)
 }
+
+func (l *Lead) LinkContact(contact *Contact, isMain bool) error {
+	return l.client.link(leadsEntity, l.Id, []linkData{{
+		Id:   contact.Id,
+		Type: contactsEntity,
+		Metadata: &linkMetadata{
+			IsMain: isMain,
+		},
+	}})
+}
