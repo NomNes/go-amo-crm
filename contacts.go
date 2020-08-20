@@ -1,118 +1,81 @@
 package amo
 
-import (
-	"fmt"
-	"time"
+import "time"
 
-	"github.com/NomNes/go-errors-sentry"
+const (
+	contactsEntity = "contacts"
 )
 
 type Contact struct {
-	Id                int     `json:"id"`
-	Name              string  `json:"name"`
-	FirstName         string  `json:"first_name"`
-	LastName          string  `json:"last_name"`
-	ResponsibleUserId int     `json:"responsible_user_id"`
-	CreatedBy         int     `json:"created_by"`
-	CreatedAt         int     `json:"created_at"`
-	UpdatedAt         int     `json:"updated_at"`
-	AccountId         int     `json:"account_id"`
-	UpdatedBy         int     `json:"updated_by"`
-	GroupId           int     `json:"group_id"`
-	Company           Company `json:"company"`
-	ClosestTaskAt     int     `json:"closest_task_at"`
+	Id                int                 `json:"id"`
+	Name              string              `json:"name"`
+	FirstName         string              `json:"first_name"`
+	LastName          string              `json:"last_name"`
+	ResponsibleUserId int                 `json:"responsible_user_id"`
+	GroupId           int                 `json:"group_id"`
+	CreatedBy         int                 `json:"created_by"`
+	UpdatedBy         int                 `json:"updated_by"`
+	ClosestTaskAt     *int                `json:"closest_task_at"`
+	AccountId         int                 `json:"account_id"`
+	CustomFieldValues []CustomFieldValues `json:"custom_fields_values"`
+	Embedded          ContactEmbedded     `json:"_embedded"`
+	EntityTime
+	client *AmoCrm
 }
 
-type Company struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
+type ContactEmbedded struct {
+	Tags            []Tag         `json:"tags,omitempty"`
+	Companies       []IdLink      `json:"companies,omitempty"`
+	Leads           []IdLink      `json:"leads,omitempty"`
+	CatalogElements []interface{} `json:"catalog_elements,omitempty"` // TODO
 }
 
-type cr struct {
-	Embedded struct {
-		Items []Contact `json:"items"`
-	} `json:"_embedded"`
+// GetContacts return slice of Contact
+// Available with: WithLeads, WithCustomers, WithCatalogElements
+func (a *AmoCrm) GetContacts(limit, page int, with []string) ([]Contact, *Pages, error) {
+	var contacts []Contact
+	paged, err := a.getItems([]string{contactsEntity}, &entitiesQuery{Limit: limit, Page: page, With: with}, &contacts)
+	for i := range contacts {
+		contacts[i].client = a
+	}
+	return contacts, paged, err
 }
 
-func (a *AmoCrm) GetContacts() ([]Contact, error) {
-	var r cr
-	err := a.get("/api/v2/contacts", &r, true)
+// GetContact return Contact by id
+// Available with: WithLeads, WithCustomers, WithCatalogElements
+func (a *AmoCrm) GetContact(id int, with []string) (*Contact, error) {
+	var contact *Contact
+	err := a.getItem([]string{contactsEntity}, &id, &entitiesQuery{With: with}, &contact)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return nil, err
 	}
-	return r.Embedded.Items, nil
+	contact.client = a
+	return contact, nil
 }
 
-func (a *AmoCrm) GetContact(id int) (*Contact, error) {
-	var r cr
-	err := a.get(fmt.Sprintf("/api/v2/contacts?id=%d", id), &r, true)
-	if err != nil {
-		return nil, errors.Wrap(err)
+// NewContact return Contact for current AmoCrm client
+func (a *AmoCrm) NewContact(contact *Contact) *Contact {
+	if contact == nil {
+		contact = &Contact{}
 	}
-	if len(r.Embedded.Items) > 0 {
-		return &r.Embedded.Items[0], nil
-	}
-	return nil, nil
+	contact.client = a
+	return contact
 }
 
-type AddContact struct {
-	Id                int                     `json:"id,omitempty"`
-	Name              string                  `json:"name,omitempty"`
-	FirstName         string                  `json:"first_name,omitempty"`
-	LastName          string                  `json:"last_name,omitempty"`
-	CreatedAt         int                     `json:"created_at,omitempty"`
-	UpdatedAt         int                     `json:"updated_at,omitempty"`
-	ResponsibleUserId int                     `json:"responsible_user_id,omitempty"`
-	CreatedBy         int                     `json:"created_by,omitempty"`
-	CompanyName       string                  `json:"company_name,omitempty"`
-	Tags              string                  `json:"tags,omitempty"`
-	CustomFields      []AddContactCustomField `json:"custom_fields,omitempty"`
+// GetContactsTags return slice of Tag for contacts
+func (a *AmoCrm) GetContactsTags(limit, page int) ([]Tag, *Pages, error) {
+	return a.getTags(contactsEntity, limit, page)
 }
 
-type AddContactCustomField struct {
-	Id     int                          `json:"id"`
-	Values []AddContactCustomFieldValue `json:"values"`
+// GetContactsTags return slice of CustomField for contacts
+func (a *AmoCrm) GetContactsCustomFields(limit, page int) ([]CustomField, *Pages, error) {
+	return a.getCustomFields(contactsEntity, limit, page)
 }
 
-type AddContactCustomFieldValue struct {
-	Value string `json:"value"`
-	Enum  string `json:"enum"`
-}
-
-func (a *AmoCrm) postContacts(action string, contact []AddContact) ([]int, error) {
-	var r struct {
-		Embedded struct {
-			Items []struct {
-				Id int `json:"id"`
-			} `json:"items"`
-		} `json:"_embedded"`
+// Save add or update Contact
+func (c *Contact) Save() error {
+	if c.Id > 0 {
+		c.SetUpdatedAtTime(time.Now())
 	}
-	err := a.post("/api/v2/contacts", map[string]interface{}{
-		action: contact,
-	}, &r, true)
-	if err != nil {
-		return nil, errors.Wrap(err)
-	}
-
-	if len(r.Embedded.Items) > 0 {
-		var result []int
-		for _, item := range r.Embedded.Items {
-			result = append(result, item.Id)
-		}
-		return result, nil
-	}
-	return nil, nil
-}
-
-func (a *AmoCrm) AddContacts(contact []AddContact) ([]int, error) {
-	return a.postContacts("add", contact)
-}
-
-func (a *AmoCrm) UpdateContacts(contact []AddContact) ([]int, error) {
-	for i := range contact {
-		if contact[i].UpdatedAt == 0 {
-			contact[i].UpdatedAt = int(time.Now().Unix())
-		}
-	}
-	return a.postContacts("update", contact)
+	return c.client.addItem([]string{contactsEntity}, c, c.Id > 0, nil)
 }

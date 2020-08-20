@@ -1,9 +1,8 @@
 package amo
 
 import (
+	"errors"
 	"time"
-
-	"github.com/NomNes/go-errors-sentry"
 )
 
 type TokenData struct {
@@ -24,7 +23,7 @@ func (a *AmoCrm) getToken(code string) (*TokenData, error) {
 		"redirect_uri":  "https://dubai-realty.com",
 	}, &d, false)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return nil, err
 	}
 	d.Timestamp = time.Now().Add(-time.Second * 30)
 	return d, nil
@@ -39,26 +38,29 @@ func (a *AmoCrm) refreshToken(d *TokenData) (*TokenData, error) {
 		"redirect_uri":  "https://dubai-realty.com",
 	}, &d, false)
 	if err != nil {
-		return d, errors.Wrap(err)
+		return d, err
 	}
 	d.Timestamp = time.Now().Add(-time.Second * 30)
 	return d, nil
 }
 
-func (a *AmoCrm) actualizeToken(d *TokenData) (*TokenData, error) {
-	if d.RefreshToken == "" || d.AccessToken == "" {
+func (a *AmoCrm) actualizeToken(d *TokenData, force bool) (*TokenData, error) {
+	if d == nil || d.RefreshToken == "" || d.AccessToken == "" {
 		return nil, errors.New("token not found")
 	}
-	if time.Now().AddDate(0, -3, 0).After(d.Timestamp) {
-		return nil, errors.New("token expired")
-	}
 	var err error
-	e := d.Timestamp.Add(time.Duration(int64(time.Second) * int64(d.ExpiresIn)))
-	if time.Now().After(e) {
-		d, err = a.refreshToken(d)
-		if err != nil {
-			return nil, errors.Wrap(err)
+	if !force {
+		if time.Now().AddDate(0, -3, 0).After(d.Timestamp) {
+			return nil, errors.New("token expired")
 		}
+		e := d.Timestamp.Add(time.Duration(int64(time.Second) * int64(d.ExpiresIn)))
+		if !time.Now().After(e) {
+			return d, nil
+		}
+	}
+	d, err = a.refreshToken(d)
+	if err != nil {
+		return nil, err
 	}
 	return d, nil
 }

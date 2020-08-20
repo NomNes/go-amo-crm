@@ -2,17 +2,16 @@ package amo
 
 import (
 	"sync"
-
-	"github.com/NomNes/go-errors-sentry"
 )
 
+const VERSION = 4
+
 type AmoCrm struct {
-	Debug        bool
 	subdomain    string
 	clientId     string
 	clientSecret string
 	redirectUri  string
-	authorized   bool
+	Authorized   bool
 	Storage
 	sync.Mutex
 }
@@ -27,22 +26,22 @@ func (a *AmoCrm) Setup(subdomain, clientId, clientSecret, redirectUri string) {
 func (a *AmoCrm) Auth(code string) error {
 	d, err := a.getToken(code)
 	if err != nil {
-		return errors.Wrap(err)
+		return err
 	}
 	err = a.Storage.Set(d)
 	if err != nil {
-		return errors.Wrap(err)
+		return err
 	}
 	return nil
 }
 
-func (a *AmoCrm) Restore() error {
+func (a *AmoCrm) Restore(force bool) error {
 	a.Lock()
 	defer a.Unlock()
 	d := a.Storage.Get()
-	d, err := a.actualizeToken(d)
+	d, err := a.actualizeToken(d, force)
 	if err != nil {
-		return errors.Wrap(err)
+		return err
 	}
 	return a.Storage.Set(d)
 }
