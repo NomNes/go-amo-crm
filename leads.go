@@ -2,7 +2,7 @@ package amo
 
 import "time"
 
-const leadsEntity = "leads"
+const LeadsEntity = "leads"
 
 type Lead struct {
 	Id                     int                 `json:"id"`
@@ -46,7 +46,7 @@ type LeadContact struct {
 // Available order: OrderByCreatedAt, OrderByUpdatedAt, OrderById
 func (a *AmoCrm) GetLeads(limit, page int, with []string, query string, order map[string]string) ([]Lead, *Pages, error) {
 	var leads []Lead
-	paged, err := a.getItems([]string{leadsEntity}, &entitiesQuery{Limit: limit, Page: page, With: with, Query: query, Order: order}, &leads)
+	paged, err := a.getItems([]string{LeadsEntity}, &entitiesQuery{Limit: limit, Page: page, With: with, Query: query, Order: order}, &leads)
 	for i := range leads {
 		leads[i].client = a
 	}
@@ -57,7 +57,7 @@ func (a *AmoCrm) GetLeads(limit, page int, with []string, query string, order ma
 // Available with: WithCatalogElements, WithIsPriceModifiedByRobot, WithLossReason, WithContacts, WithOnlyDeleted
 func (a *AmoCrm) GetLead(id int, with []string) (*Lead, error) {
 	var lead *Lead
-	err := a.getItem([]string{leadsEntity}, &id, &entitiesQuery{With: with}, &lead)
+	err := a.getItem([]string{LeadsEntity}, &id, &entitiesQuery{With: with}, &lead)
 	if err != nil {
 		return nil, err
 	}
@@ -76,12 +76,12 @@ func (a *AmoCrm) NewLead(contact *Lead) *Lead {
 
 // GetLeadsTags return slice of Tag for contacts
 func (a *AmoCrm) GetLeadsTags(limit, page int) ([]Tag, *Pages, error) {
-	return a.getTags(leadsEntity, limit, page)
+	return a.getTags(LeadsEntity, limit, page)
 }
 
 // GetLeadsCustomFields return slice of CustomField for contacts
 func (a *AmoCrm) GetLeadsCustomFields(limit, page int) ([]CustomField, *Pages, error) {
-	return a.getCustomFields(leadsEntity, limit, page)
+	return a.getCustomFields(LeadsEntity, limit, page)
 }
 
 // Save add or update Lead
@@ -89,13 +89,13 @@ func (l *Lead) Save() error {
 	if l.Id > 0 {
 		l.SetUpdatedAtTime(time.Now())
 	}
-	return l.client.addItem([]string{leadsEntity}, l, l.Id > 0, nil)
+	return l.client.addItem([]string{LeadsEntity}, l, l.Id > 0, nil)
 }
 
 func (l *Lead) LinkContact(contact *Contact, isMain bool) error {
-	return l.client.link(leadsEntity, l.Id, []linkData{{
+	return l.client.link(LeadsEntity, l.Id, []linkData{{
 		Id:   contact.Id,
-		Type: contactsEntity,
+		Type: ContactsEntity,
 		Metadata: &linkMetadata{
 			IsMain: isMain,
 		},

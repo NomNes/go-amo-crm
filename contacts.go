@@ -3,7 +3,7 @@ package amo
 import "time"
 
 const (
-	contactsEntity = "contacts"
+	ContactsEntity = "contacts"
 )
 
 type Contact struct {
@@ -35,7 +35,7 @@ type ContactEmbedded struct {
 // Available order: OrderByCreatedAt, OrderByUpdatedAt, OrderById
 func (a *AmoCrm) GetContacts(limit, page int, with []string, query string, order map[string]string) ([]Contact, *Pages, error) {
 	var contacts []Contact
-	paged, err := a.getItems([]string{contactsEntity}, &entitiesQuery{Limit: limit, Page: page, With: with, Query: query, Order: order}, &contacts)
+	paged, err := a.getItems([]string{ContactsEntity}, &entitiesQuery{Limit: limit, Page: page, With: with, Query: query, Order: order}, &contacts)
 	for i := range contacts {
 		contacts[i].client = a
 	}
@@ -46,7 +46,7 @@ func (a *AmoCrm) GetContacts(limit, page int, with []string, query string, order
 // Available with: WithLeads, WithCustomers, WithCatalogElements
 func (a *AmoCrm) GetContact(id int, with []string) (*Contact, error) {
 	var contact *Contact
-	err := a.getItem([]string{contactsEntity}, &id, &entitiesQuery{With: with}, &contact)
+	err := a.getItem([]string{ContactsEntity}, &id, &entitiesQuery{With: with}, &contact)
 	if err != nil {
 		return nil, err
 	}
@@ -65,12 +65,12 @@ func (a *AmoCrm) NewContact(contact *Contact) *Contact {
 
 // GetContactsTags return slice of Tag for contacts
 func (a *AmoCrm) GetContactsTags(limit, page int) ([]Tag, *Pages, error) {
-	return a.getTags(contactsEntity, limit, page)
+	return a.getTags(ContactsEntity, limit, page)
 }
 
 // GetContactsTags return slice of CustomField for contacts
 func (a *AmoCrm) GetContactsCustomFields(limit, page int) ([]CustomField, *Pages, error) {
-	return a.getCustomFields(contactsEntity, limit, page)
+	return a.getCustomFields(ContactsEntity, limit, page)
 }
 
 // Save add or update Contact
@@ -78,5 +78,5 @@ func (c *Contact) Save() error {
 	if c.Id > 0 {
 		c.SetUpdatedAtTime(time.Now())
 	}
-	return c.client.addItem([]string{contactsEntity}, c, c.Id > 0, nil)
+	return c.client.addItem([]string{ContactsEntity}, c, c.Id > 0, nil)
 }

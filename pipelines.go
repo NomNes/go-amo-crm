@@ -32,7 +32,7 @@ type PipelineStatus struct {
 // GetPipelines return slice of Pipeline
 func (a *AmoCrm) GetPipelines() ([]Pipeline, *Pages, error) {
 	var pipelines []Pipeline
-	pages, err := a.getItems([]string{leadsEntity, pipelineEntity}, nil, &pipelines)
+	pages, err := a.getItems([]string{LeadsEntity, pipelineEntity}, nil, &pipelines)
 	for i := range pipelines {
 		pipelines[i].client = a
 	}
@@ -42,7 +42,7 @@ func (a *AmoCrm) GetPipelines() ([]Pipeline, *Pages, error) {
 // GetPipeline return Pipeline by id
 func (a *AmoCrm) GetPipeline(id int) (*Pipeline, error) {
 	var pipeline *Pipeline
-	err := a.getItem([]string{leadsEntity, pipelineEntity}, &id, nil, &pipeline)
+	err := a.getItem([]string{LeadsEntity, pipelineEntity}, &id, nil, &pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -61,10 +61,10 @@ func (a *AmoCrm) NewPipeline(contact *Pipeline) *Pipeline {
 
 // Save add or update Pipeline
 func (p *Pipeline) Save() error {
-	return p.client.addItem([]string{leadsEntity, pipelineEntity}, p, p.Id > 0, &p.Id)
+	return p.client.addItem([]string{LeadsEntity, pipelineEntity}, p, p.Id > 0, &p.Id)
 }
 
 // Delete Pipeline
 func (p *Pipeline) Delete() error {
-	return p.client.deleteItem([]string{leadsEntity, pipelineEntity}, p.Id)
+	return p.client.deleteItem([]string{LeadsEntity, pipelineEntity}, p.Id)
 }
